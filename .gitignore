@@ -1,0 +1,23 @@
+# Environment variables and secrets
+.env
+service_account.json
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+env/
+venv/
+ENV/
+
+# Project specific data (optional to ignore, usually recommended for privacy)
+scraper/data/
+output/final_enriched_data.csv
+*.html
+debug_*.png
+
+# IDEs
+.vscode/
+.idea/
+.gemini/
