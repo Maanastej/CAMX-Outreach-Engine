@@ -26,14 +26,12 @@ class CAMXScraper:
             await asyncio.sleep(5)
 
             # Wait for exhibitor links to appear
-            # Common MapYourShow selector for exhibitor names
-            selector = "a.mys-exhibitor-name, a[data-exhid]"
+            # Confirmed selector for MapYourShow 8.0 exhibitor links
+            selector = "a[href*='exhibitor-details.cfm']"
             try:
-                await page.wait_for_selector(selector, timeout=20000)
+                await page.wait_for_selector(selector, timeout=30000)
             except:
                 print("Selector not found. The page might be protected or layout changed.")
-                # Fallback: take a screenshot for debugging if this was a real run
-                # await page.screenshot(path="debug_gallery.png")
                 await browser.close()
                 return pd.DataFrame()
 
@@ -42,17 +40,28 @@ class CAMXScraper:
             for el in exhibitor_elements:
                 name = await el.inner_text()
                 href = await el.get_attribute("href")
-                if href and "/exhibitor/" in href:
-                    links.append({"name": name.strip(), "url": f"https://camx2026.mapyourshow.com{href}"})
+                # Filter out empty names or non-exhibitor links
+                if name.strip() and href and "/exhibitor-details.cfm" in href:
+                    # Clean the URL
+                    clean_url = href
+                    if not clean_url.startswith("http"):
+                        clean_url = f"https://camx2026.mapyourshow.com{clean_url}"
+                    links.append({"name": name.strip(), "url": clean_url})
 
-            # Remove duplicates
-            unique_links = {l['url']: l for l in links}.values()
-            links = list(unique_links)
+            # Remove duplicates while preserving order
+            seen = set()
+            unique_links = []
+            for l in links:
+                if l['url'] not in seen:
+                    unique_links.append(l)
+                    seen.add(l['url'])
+            
+            links = unique_links
             
             if limit:
                 links = links[:limit]
 
-            print(f"Found {len(links)} exhibitors. Starting detail extraction...")
+            print(f"Found {len(links)} unique exhibitors. Starting detail extraction...")
 
             results = []
             for i, link in enumerate(links):
@@ -60,8 +69,7 @@ class CAMXScraper:
                 detail_data = await self.scrape_detail(page, link['url'])
                 detail_data['name'] = link['name']
                 results.append(detail_data)
-                # Polite delay
-                await asyncio.sleep(random.uniform(1, 3))
+                await asyncio.sleep(random.uniform(1, 2))
 
             await browser.close()
             
@@ -73,23 +81,35 @@ class CAMXScraper:
     async def scrape_detail(self, page, url):
         try:
             await page.goto(url, wait_until="networkidle", timeout=30000)
-            await asyncio.sleep(2)
+            await asyncio.sleep(3) # Wait for JS rendering
 
-            # Selectors based on standard MapYourShow templates
-            website_el = await page.query_selector("a.mys-exhibitor-details-website, a[target='_blank']")
-            booth_el = await page.query_selector(".mys-exhibitor-details-booth, .mys-booth-link")
-            desc_el = await page.query_selector(".mys-exhibitor-details-description, #exhibitor-description")
-            category_els = await page.query_selector_all(".mys-exhibitor-details-categories li, .mys-category-link")
+            # Website: Look for external links that aren't MapYourShow
+            website = ""
+            all_links = await page.query_selector_all("a[target='_blank']")
+            for link in all_links:
+                href = await link.get_attribute("href")
+                if href and "http" in href and "mapyourshow.com" not in href:
+                    website = href
+                    break
 
-            website = await website_el.get_attribute("href") if website_el else ""
+            # Booth: Often in a span or paragraph
+            booth_el = await page.query_selector(".mys-booth, .booth-number, p:has-text('Booth')")
             booth = await booth_el.inner_text() if booth_el else ""
+            
+            # Description: Look for the main bio div
+            desc_el = await page.query_selector(".mys-exhibitor-details-description, .section--description, p")
             description = await desc_el.inner_text() if desc_el else ""
+
+            # Categories: Grid list
+            category_els = await page.query_selector_all(".o-List_Columns--grid li, .section--list__columns-wrapper a")
             categories = [await c.inner_text() for c in category_els]
+            # Filter categories to avoid duplicates and non-categories
+            categories = list(set([c.strip() for c in categories if c.strip()]))
 
             return {
                 "source_url": url,
                 "website": website,
-                "booth": booth.replace("Booth:", "").strip(),
+                "booth": booth.replace("Booth:", "").replace("Visit booth", "").strip(),
                 "description": description.strip(),
                 "categories": ", ".join(categories)
             }
