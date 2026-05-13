@@ -1,34 +1,40 @@
-# Loom Walkthrough Script: CAMX GTM Outreach Engine
+# Loom Walkthrough Guide: CAMX GTM Outreach Engine
 
-**Duration**: 5–8 Minutes
+Use this script as a guide for your 2-3 minute project walkthrough video.
 
 ---
 
-## 1. Introduction (30 Seconds)
-"Hi, I’m [Name]. Today, I’m walking you through the CAMX GTM Outreach Engine—a custom automation built to help GTM teams turn raw conference data into high-converting outreach pipelines. We’re targeting the CAMX 2026 exhibitor gallery, enriching the data, and using AI to write personalized openers."
+## 1. Introduction (30 seconds)
+*   **Action**: Show the GitHub Repository home page.
+*   **Talking Points**:
+    *   "Hi, I'm [Your Name], and this is my submission for the GTM Engineering assignment."
+    *   "I've built a production-ready outreach engine that automates the entire lead generation pipeline: from scraping trade show exhibitors to generating AI-personalized email openers."
+    *   "The tech stack is Python, using Playwright for scraping, Groq for AI, and Google Sheets for the final delivery."
 
-## 2. The Scraper Logic (1 Minute)
-"First, let’s look at the scraper. MapYourShow galleries are notoriously dynamic, so I used **Playwright** to handle the heavy JavaScript rendering. 
-- We navigate to the gallery.
-- Extract unique exhibitor links.
-- Visit each individual detail page.
-The scraper handles rate limiting and captures booth numbers, descriptions, and websites into a clean pandas DataFrame."
+## 2. The Code Logic (60 seconds)
+*   **Action**: Open `main.py` in your editor.
+*   **Talking Points**:
+    *   "The system is orchestrated via `main.py`, which runs a 4-step pipeline."
+    *   "**Step 1: Scraping**: We use Playwright in `scraper/scraper.py`. I implemented custom selectors to handle the dynamic MapYourShow 8.0 layout, extracting real-time data for 15+ companies including their booth numbers and websites."
+    *   "**Step 2: Enrichment**: The `SimpleEnricher` module visits the exhibitor websites to find LinkedIn URLs and classifies them by industry to help target the right ICP."
+    *   "**Step 3: AI Personalization**: We use the **Groq API** with the `llama-3.3-70b` model. The logic here is signal-based—the AI looks at the company description and generates a curiosity-driven first line that sounds like a human SDR, not a bot."
+    *   "**Step 4: Sync**: Finally, the data is pushed to Google Sheets using the `gspread` library."
 
-## 3. Enrichment Strategy (1 Minute)
-"Once we have the data, we move to the enrichment phase. 
-- I built a `SimpleEnricher` that uses heuristics to find LinkedIn URLs by checking the company website.
-- It also performs **deterministic industry classification**. By scanning descriptions for terms like 'carbon fiber' or 'aerospace', we can categorize these companies automatically, which is critical for segmenting outreach."
+## 3. Demonstrating Output (60 seconds)
+*   **Action**: Open the `output/final_enriched_data.csv` file AND the Google Sheet.
+*   **Talking Points**:
+    *   "Here is the local output. You can see we have real data: Name, Booth, Website, and the AI-generated first lines."
+    *   "Switching to the Google Sheet—everything is synced automatically. This allows sales teams to immediately start their outreach with highly personalized data."
+    *   "For example, for Eastman Machine Company, the AI noticed their focus on 'automated cutting systems' and generated a line about their T25 showcase."
 
-## 4. Prompt Engineering & AI (2 Minutes)
-"This is the heart of the engine. I’m using the **Groq API** with the **Llama-3.3-70b** model for speed and quality. 
-The prompt I designed—which you can see in `prompts/personalization_prompt.txt`—is built on SDR best practices. 
-Instead of saying 'I love your company,' the AI looks for a specific signal—like a certain composite tooling solution—and asks a curiosity-based question. 
-This makes the email feel like it was written by a researcher, not a bot."
+## 4. Conclusion (15 seconds)
+*   **Action**: Show the README.md on GitHub.
+*   **Talking Points**:
+    *   "The project is fully modular and documented on GitHub. Thank you for the opportunity!"
 
-## 5. Google Sheets Integration (1 Minute)
-"Finally, the data is pushed to Google Sheets via the `gspread` library. 
-Using a service account allows this to run autonomously in the cloud or on a schedule. 
-The result is a shared sheet where the sales team can immediately see the company details, their LinkedIn profile, and a ready-to-use personalized first line."
+---
 
-## 6. Closing (30 Seconds)
-"The engine is modular, easy to scale, and focuses on the one thing that matters in GTM: quality at scale. Thanks for watching!"
+### Tips for a Great Recording:
+1.  **Keep it Snappy**: Don't spend too long on any one file.
+2.  **Zoom In**: Make sure your code text is large enough to read on video (use `Ctrl +` in VS Code).
+3.  **Show the Logs**: If you want, show the terminal output from a successful run to prove the 'Workflow Complete' message.
