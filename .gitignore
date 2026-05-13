@@ -13,7 +13,7 @@ ENV/
 
 # Project specific data (optional to ignore, usually recommended for privacy)
 scraper/data/
-output/final_enriched_data.csv
+# output/final_enriched_data.csv
 *.html
 debug_*.png
 
