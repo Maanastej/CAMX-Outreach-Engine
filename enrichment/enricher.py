@@ -59,20 +59,28 @@ class SimpleEnricher:
     def _detect_industry(self, description):
         """Simple keyword-based industry detection for CAMX exhibitors."""
         desc = description.lower()
-        if any(w in desc for w in ["composite", "carbon fiber", "fiberglass"]):
-            return "Composites Manufacturing"
-        if any(w in desc for w in ["aerospace", "aircraft", "aviation"]):
+        if any(w in desc for w in ["aerospace", "aircraft", "aviation", "uav"]):
             return "Aerospace & Defense"
-        if any(w in desc for w in ["automotive", "vehicle", "car"]):
-            return "Automotive"
-        if any(w in desc for w in ["software", "digital", "simulation"]):
-            return "Software/Engineering Services"
+        if any(w in desc for w in ["composite", "carbon fiber", "fiberglass", "prepreg"]):
+            return "Composites Manufacturing"
+        if any(w in desc for w in ["automotive", "vehicle", "car", "transportation"]):
+            return "Automotive & Transportation"
+        if any(w in desc for w in ["medical", "healthcare", "orthopedic"]):
+            return "Medical Technology"
+        if any(w in desc for w in ["energy", "wind", "turbine", "solar"]):
+            return "Renewable Energy"
+        if any(w in desc for w in ["software", "digital", "simulation", "ai"]):
+            return "Engineering Software"
         return "Advanced Manufacturing"
 
     def _extract_keywords(self, description):
         """Extracts top relevant keywords from description."""
-        # Simple regex to find capitalized terms or technical words
-        technical_terms = ["CNC", "3D Printing", "Thermoplastic", "Resin", "Tooling", "Vacuum Bagging"]
+        technical_terms = [
+            "CNC", "3D Printing", "Thermoplastic", "Resin", "Tooling", 
+            "Vacuum Bagging", "Autoclave", "Pultrusion", "Injection Molding",
+            "Carbon Fiber", "Graphene", "Nanotechnology", "Additive Manufacturing",
+            "Filament Winding", "Prepreg", "NDI", "MRO"
+        ]
         found = [term for term in technical_terms if term.lower() in description.lower()]
         return ", ".join(found)
 
